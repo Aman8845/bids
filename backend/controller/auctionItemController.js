@@ -3,6 +3,7 @@ import { Auction } from "../models/auctionSchema.js";
 import ErrorHandler from "../middlewares/error.js";
 import { catchAsyncErrors } from "../middlewares/catchAsyncErrors.js";
 import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
 export const addNewAuctionItem = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -109,7 +110,139 @@ export const getAllItems = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-export const getAuctionDetails = catchAsyncErrors(async (req, res, next) => {});
-export const getMyAuctionItems = catchAsyncErrors(async (req, res, next) => {});
-export const removeFromAuction = catchAsyncErrors(async (req, res, next) => {});
-export const republishItem = catchAsyncErrors(async (req, res, next) => {});
+export const getAuctionDetails = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ErrorHandler("Invalid id format.", 400));
+  }
+  const auctionItem = await Auction.findById(id);
+  if (!auctionItem) {
+    return next(new ErrorHandler("Auction not found.", 404));
+  }
+  const bidders = auctionItem.bids.sort((a, b) => b.amount - a.amount);
+  res.status(200).json({
+    success: true,
+    auctionItem,
+    bidders,
+  });
+});
+
+export const getMyAuctionItems = catchAsyncErrors(async (req, res, next) => {
+  const items = await Auction.find({ createdBy: req.user._id });
+  res.status(200).json({
+    success: true,
+    items,
+  });
+});
+
+export const removeFromAuction = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ErrorHandler("Invalid Id format.", 400));
+  }
+  const auctionItem = await Auction.findById(id);
+  if (!auctionItem) {
+    return next(new ErrorHandler("Auction not found.", 404));
+  }
+  if (auctionItem.createdBy.toString() !== req.user._id.toString()) {
+    return next(
+      new ErrorHandler("You are not authorized to delete this auction.", 403)
+    );
+  }
+  await auctionItem.deleteOne();
+  res.status(200).json({
+    success: true,
+    message: "Auction item deleted successfully.",
+  });
+});
+
+export const republishItem = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new ErrorHandler("Invalid Id format.", 400));
+  }
+  let auctionItem = await Auction.findById(id);
+  if (!auctionItem) {
+    return next(new ErrorHandler("Auction not found.", 404));
+  }
+  if (auctionItem.createdBy.toString() !== req.user._id.toString()) {
+    return next(
+      new ErrorHandler("You are not authorized to republish this auction.", 403)
+    );
+  }
+  if (!req.body.startTime || !req.body.endTime) {
+    return next(new ErrorHandler("Start time and end time is mandatory."));
+  }
+
+  // Check if auction is currently active (started but not ended)
+  if (auctionItem.startTime <= Date.now() && auctionItem.endTime > Date.now()) {
+    return next(
+      new ErrorHandler("Auction is currently active, cannot republish.", 400)
+    );
+  }
+
+  // Parse dates with proper error handling
+  let startTime, endTime;
+  try {
+    startTime = new Date(req.body.startTime);
+    endTime = new Date(req.body.endTime);
+
+    // Check if dates are valid
+    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+      throw new Error("Invalid date format");
+    }
+  } catch (error) {
+    return next(
+      new ErrorHandler(
+        "Please provide valid date format (ISO string or timestamp).",
+        400
+      )
+    );
+  }
+
+  let data = {
+    startTime,
+    endTime,
+  };
+
+  if (data.startTime < Date.now()) {
+    return next(
+      new ErrorHandler(
+        "Auction starting time must be greater than present time",
+        400
+      )
+    );
+  }
+  if (data.startTime >= data.endTime) {
+    return next(
+      new ErrorHandler(
+        "Auction starting time must be less than ending time.",
+        400
+      )
+    );
+  }
+  data.bids = [];
+  data.commissionCalculated = false;
+
+  auctionItem = await Auction.findByIdAndUpdate(id, data, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  const createdBy = await User.findByIdAndUpdate(
+    req.user._id,
+    { unpaidCommission: 0 },
+    {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
+    }
+  );
+  res.status(200).json({
+    success: true,
+    auctionItem,
+    message: `Auction republished and will be active on ${startTime.toISOString()}`,
+    createdBy,
+  });
+});
