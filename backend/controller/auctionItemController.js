@@ -165,44 +165,18 @@ export const republishItem = catchAsyncErrors(async (req, res, next) => {
   if (!auctionItem) {
     return next(new ErrorHandler("Auction not found.", 404));
   }
-  if (auctionItem.createdBy.toString() !== req.user._id.toString()) {
-    return next(
-      new ErrorHandler("You are not authorized to republish this auction.", 403)
-    );
-  }
   if (!req.body.startTime || !req.body.endTime) {
     return next(new ErrorHandler("Start time and end time is mandatory."));
   }
-
-  // Check if auction is currently active (started but not ended)
-  if (auctionItem.startTime <= Date.now() && auctionItem.endTime > Date.now()) {
+  if (new Date(auctionItem.endTime) > Date.now()) {
     return next(
-      new ErrorHandler("Auction is currently active, cannot republish.", 400)
-    );
-  }
-
-  // Parse dates with proper error handling
-  let startTime, endTime;
-  try {
-    startTime = new Date(req.body.startTime);
-    endTime = new Date(req.body.endTime);
-
-    // Check if dates are valid
-    if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-      throw new Error("Invalid date format");
-    }
-  } catch (error) {
-    return next(
-      new ErrorHandler(
-        "Please provide valid date format (ISO string or timestamp).",
-        400
-      )
+      new ErrorHandler("Auction is already active, cannot republish", 400)
     );
   }
 
   let data = {
-    startTime,
-    endTime,
+    startTime: new Date(req.body.startTime),
+    endTime: new Date(req.body.endTime),
   };
 
   if (data.startTime < Date.now()) {
@@ -223,7 +197,6 @@ export const republishItem = catchAsyncErrors(async (req, res, next) => {
   }
   data.bids = [];
   data.commissionCalculated = false;
-
   auctionItem = await Auction.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
@@ -235,14 +208,14 @@ export const republishItem = catchAsyncErrors(async (req, res, next) => {
     { unpaidCommission: 0 },
     {
       new: true,
-      runValidators: true,
+      runValidators: false,
       useFindAndModify: false,
     }
   );
   res.status(200).json({
     success: true,
     auctionItem,
-    message: `Auction republished and will be active on ${startTime.toISOString()}`,
+    message: `Auction republished and will be active on ${req.body.startTime}`,
     createdBy,
   });
 });
