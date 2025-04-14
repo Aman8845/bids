@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const userSlice = createSlice({
+export const userSlice = createSlice({
   name: "user",
   initialState: {
     loading: false,

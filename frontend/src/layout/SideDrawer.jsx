@@ -11,16 +11,24 @@ import { IoMdCloseCircleOutline, IoIosCreate } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
 import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/store/slices/userSlice";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useClerk, useUser } from "@clerk/clerk-react";
+
 const SideDrawer = () => {
   const [show, setShow] = useState(false);
-  const { isAuthenticated, user } = useSelector((state) => state.user);
-  const dispatch = useDispatch();
-  const handleLogout = () => {
-    dispatch(logout());
+  const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
+
   return (
     <>
       <div
@@ -44,8 +52,7 @@ const SideDrawer = () => {
             <li>
               <Link
                 to={"/auctions"}
-                className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
               >
                 <RiAuctionFill /> Auctions
               </Link>
@@ -53,19 +60,17 @@ const SideDrawer = () => {
             <li>
               <Link
                 to={"/leaderboards"}
-                className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
               >
                 <MdLeaderboard /> Leaderboard
               </Link>
             </li>
-            {isAuthenticated && user && user.role === "Auctioner" && (
+            {isSignedIn && user?.publicMetadata?.role === "Auctioner" && (
               <>
                 <li>
                   <Link
                     to={"/submit-commission"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                   >
                     <FaFileInvoiceDollar /> Submit Commission
                   </Link>
@@ -73,8 +78,7 @@ const SideDrawer = () => {
                 <li>
                   <Link
                     to={"/create-auction"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                   >
                     <IoIosCreate /> Create Auction
                   </Link>
@@ -82,27 +86,25 @@ const SideDrawer = () => {
                 <li>
                   <Link
                     to={"/view-my-auctions"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                   >
                     <FaEye /> View My Auctions
                   </Link>
                 </li>
               </>
             )}
-            {isAuthenticated && user && user.role === "Admin" && (
+            {isSignedIn && user?.publicMetadata?.role === "Admin" && (
               <li>
                 <Link
                   to={"/dashboard"}
-                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150
-              "
+                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                 >
                   <MdDashboard /> Dashboard
                 </Link>
               </li>
             )}
           </ul>
-          {!isAuthenticated ? (
+          {!isSignedIn ? (
             <>
               <div className="my-4 flex gap-2">
                 <Link
@@ -130,7 +132,7 @@ const SideDrawer = () => {
           )}
           <hr className="mb-4 border-t-[#d6482b]" />
           <ul className="flex flex-col gap-3">
-            {isAuthenticated && (
+            {isSignedIn && (
               <li>
                 <Link
                   to={"/me"}
@@ -191,13 +193,6 @@ const SideDrawer = () => {
             Contact Us
           </Link>
           <p className="text-stone-500">&copy; BidSphere</p>
-          {/* <p className="text-stone-500">
-            Designed By
-            <Link
-              to={"/"}
-              className="font-semibold hover:text-[#d6482b] hover:transition-all hover:duration-150"
-            ></Link>
-          </p> */}
         </div>
       </div>
     </>
