@@ -1,11 +1,21 @@
-import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import SideDrawer from "./layout/SideDrawer";
+// import Home from "./pages/Home";
+import { ToastContainer } from "react-toastify";
+import {SignIn, SignUp} from "@clerk/clerk-react";
 
 const App = () => {
   return (
-    <>
-     <h1 className='text-red-600'>HELLO WORLD</h1> 
-    </>
-  )
-}
+    <Router>
+      <SideDrawer />
+      <Routes>
+        {/* <Route path="/" element={<Home />} /> */}
+        <Route path="login" element={<SignIn />} />
+        <Route path="sign-up" element={<SignUp />} />
+      </Routes>
+      <ToastContainer position="top-right"/>
+    </Router>
+  );
+};
 
-export default App
+export default App;
