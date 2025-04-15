@@ -13,19 +13,23 @@ import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useClerk, useUser } from "@clerk/clerk-react";
+import RoleSelection from "../components/RoleSelection";
 
 const SideDrawer = () => {
   const [show, setShow] = useState(false);
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const { isSignedIn, user } = useUser();
   const { signOut } = useClerk();
   const navigate = useNavigate();
-  
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole'));
+
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/');
+      localStorage.removeItem('userRole');
+      navigate("/");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
@@ -38,8 +42,10 @@ const SideDrawer = () => {
         <GiHamburgerMenu />
       </div>
       <div
-        className={`w-[100%] sm:w-[300px] bg-[#f6f4f0] h-full fixed top-0 ${
-          show ? "left-0" : "left-[-100%"
+        className={`w-[100%] ${
+          showRoleSelection ?  "sm:w-[490px]" : "sm:w-[300px]"
+        } bg-[#f6f4f0] h-full fixed top-0 ${
+          show ? "left-0" : "left-[-100%]"
         } transition-all duration-100 p-4 flex flex-col justify-between lg:left-0 border-r-[1px] border-r-stone-500`}
       >
         <div className="relative">
@@ -65,82 +71,63 @@ const SideDrawer = () => {
                 <MdLeaderboard /> Leaderboard
               </Link>
             </li>
-            {isSignedIn && user?.publicMetadata?.role === "Auctioner" && (
-              <>
-                <li>
-                  <Link
-                    to={"/submit-commission"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-                  >
-                    <FaFileInvoiceDollar /> Submit Commission
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={"/create-auction"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-                  >
-                    <IoIosCreate /> Create Auction
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={"/view-my-auctions"}
-                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-                  >
-                    <FaEye /> View My Auctions
-                  </Link>
-                </li>
-              </>
-            )}
-            {isSignedIn && user?.publicMetadata?.role === "Admin" && (
+            {!isSignedIn && (
               <li>
-                <Link
-                  to={"/dashboard"}
+                <button
+                  onClick={() => setShowRoleSelection(!showRoleSelection)}
                   className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                 >
-                  <MdDashboard /> Dashboard
-                </Link>
+                  <FaUserCircle /> Select Role
+                </button>
+                {showRoleSelection && (
+                  <div className="mt-2 ml-6">
+                    <RoleSelection />
+                  </div>
+                )}
               </li>
             )}
           </ul>
-          {!isSignedIn ? (
-            <>
-              <div className="my-4 flex gap-2">
-                <Link
-                  to={"/sign-up"}
-                  className="bg-[#D6482B] font-semibold hover:bg-[#b8381e] text-xl py-1 px-3 rounded-md text-white"
-                >
-                  Sign Up
-                </Link>
-                <Link
-                  to={"/login"}
-                  className="text-[#1c1b1b] bg-transparent border-[#DECCBE] border-2 hover:bg-[#fffefd] hover:text-[#fdba88] font-bold text-xl py-1 px-4 rounded-md"
-                >
-                  Login
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="my-4 flex gap-4 w-fit" onClick={handleLogout}>
-                <button className="bg-[#D6482B] font-semibold hover:bg-[#b8381e] text-xl py-1 px-4 rounded-md text-white">
-                  Logout
-                </button>
-              </div>
-            </>
-          )}
           <hr className="mb-4 border-t-[#d6482b]" />
           <ul className="flex flex-col gap-3">
             {isSignedIn && (
-              <li>
-                <Link
-                  to={"/me"}
-                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-                >
-                  <FaUserCircle /> Profile
-                </Link>
-              </li>
+              <>
+                <li>
+                  <Link
+                    to={"/me"}
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                  >
+                    <FaUserCircle /> Profile
+                  </Link>
+                </li>
+                {userRole === 'auctioner' && (
+                  <>
+                    <li>
+                      <Link
+                        to={"/submit-commission"}
+                        className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                      >
+                        <FaFileInvoiceDollar /> Submit Commission
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to={"/create-auction"}
+                        className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                      >
+                        <IoIosCreate /> Create Auction
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to={"/my-auctions"}
+                        className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                      >
+                        <FaEye /> My Auctions
+                      </Link>
+                    </li>
+                  </>
+                )}
+              </>
             )}
             <li>
               <Link
