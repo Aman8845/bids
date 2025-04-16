@@ -5,101 +5,34 @@ import { SiGooglesearchconsole } from "react-icons/si";
 import { BsFillInfoSquareFill } from "react-icons/bs";
 import { FaFacebook } from "react-icons/fa";
 import { RiInstagramFill } from "react-icons/ri";
-import { FaXTwitter } from "react-icons/fa6";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoMdCloseCircleOutline, IoIosCreate } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
 import { FaFileInvoiceDollar } from "react-icons/fa6";
 import { FaEye } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
-import { useClerk, useUser } from "@clerk/clerk-react";
-import RoleSelection from "../components/RoleSelection";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/store/slices/userSlice";
+import { Link } from "react-router-dom";
 
 const SideDrawer = () => {
   const [show, setShow] = useState(false);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const { isSignedIn, user } = useUser();
-  const { signOut } = useClerk();
-  const navigate = useNavigate();
-  const [userRole, setUserRole] = useState(localStorage.getItem("userRole"));
+  const { isAuthenticated, user } = useSelector((state) => state.user);
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      localStorage.removeItem("userRole");
-      navigate("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  const renderRoleSpecificMenu = () => {
-    if (userRole === "auctioner") {
-      return (
-        <>
-          <li>
-            <Link
-              to={"/submit-commission"}
-              className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-            >
-              <FaFileInvoiceDollar /> Submit Commission
-            </Link>
-          </li>
-          <li>
-            <Link
-              to={"/create-auction"}
-              className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-            >
-              <IoIosCreate /> Create Auction
-            </Link>
-          </li>
-          <li>
-            <Link
-              to={"/my-auctions"}
-              className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-            >
-              <FaEye /> My Auctions
-            </Link>
-          </li>
-        </>
-      );
-    } else if (userRole === "bidder") {
-      return (
-        <>
-          <li>
-            <Link
-              to={"/my-bids"}
-              className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-            >
-              <FaEye /> My Bids
-            </Link>
-          </li>
-          <li>
-            <Link
-              to={"/watchlist"}
-              className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
-            >
-              <FaEye /> Watchlist
-            </Link>
-          </li>
-        </>
-      );
-    }
-    return null;
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+    dispatch(logout());
   };
 
   return (
     <>
       <div
         onClick={() => setShow(!show)}
-        className="fixed right-5 bg-[#D6482B] text-white text-3xl rounded-md hover:bg-[#b8381e] lg:hidden"
+        className="fixed right-5 top-5 bg-[#D6482B] text-white text-3xl p-2 rounded-md hover:bg-[#b8381e] lg:hidden"
       >
         <GiHamburgerMenu />
       </div>
       <div
-        className={`w-[100%] ${
-          showRoleSelection ? "sm:w-[490px]" : "sm:w-[300px]"
-        } bg-[#f6f4f0] h-full fixed top-0 ${
+        className={`w-[100%] sm:w-[300px] bg-[#f6f4f0] h-full fixed top-0 ${
           show ? "left-0" : "left-[-100%]"
         } transition-all duration-100 p-4 flex flex-col justify-between lg:left-0 border-r-[1px] border-r-stone-500`}
       >
@@ -120,59 +53,95 @@ const SideDrawer = () => {
             </li>
             <li>
               <Link
-                to={"/leaderboards"}
+                to={"/leaderboard"}
                 className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
               >
                 <MdLeaderboard /> Leaderboard
               </Link>
             </li>
-            {!isSignedIn && (
-              <li>
-                <button
-                  onClick={() => setShowRoleSelection(!showRoleSelection)}
-                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150 pb-2"
-                >
-                  <FaUserCircle /> Select Role
-                </button>
-                {showRoleSelection && (
-                  <div className="mt-2 ml-6">
-                    <RoleSelection />
-                  </div>
-                )}
-              </li>
-            )}
-            {isSignedIn && (
-              <>
-                <div className="my-4 flex gap-4 w-fit ml-5" onClick={handleLogout}>
-                <button className="bg-[#D6482B] font-semibold hover:bg-[#b8381e] text-xl py-1 px-4 rounded-md text-white itemc">
-                  Logout
-                </button>
-              </div>
-
-              </>
-            )}
-            {isSignedIn && renderRoleSpecificMenu()}
-          </ul>
-          <hr className="mb-4 border-t-[#d6482b]" />
-          <ul className="flex flex-col gap-3">
-            {isSignedIn && (
+            {isAuthenticated && user && user.role === "Auctioner" && (
               <>
                 <li>
                   <Link
-                    to={"/me"}
+                    to={"/submit-commission"}
                     className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
                   >
-                    <FaUserCircle /> Profile
+                    <FaFileInvoiceDollar /> Submit Commission
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/create-auction"}
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                  >
+                    <IoIosCreate /> Create Auction
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/view-my-auctions"}
+                    className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                  >
+                    <FaEye /> View My Auctions
                   </Link>
                 </li>
               </>
+            )}
+            {isAuthenticated && user && user.role === "Super Admin" && (
+              <li>
+                <Link
+                  to={"/dashboard"}
+                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                >
+                  <MdDashboard /> Dashboard
+                </Link>
+              </li>
+            )}
+          </ul>
+          {!isAuthenticated ? (
+            <>
+              <div className="my-4 flex gap-2">
+                <Link
+                  to={"/sign-up"}
+                  className="bg-[#D6482B] font-semibold hover:bg-[#b8381e] text-xl py-1 px-4 rounded-md text-white"
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  to={"/login"}
+                  className="text-[#DECCBE] bg-transparent border-[#DECCBE] border-2 hover:bg-[#fffefd] hover:text-[#fdba88] font-bold text-xl py-1 px-4 rounded-md"
+                >
+                  Login
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="my-4 flex gap-4 w-fit" onClick={handleLogout}>
+                <button className="bg-[#D6482B] font-semibold hover:bg-[#b8381e] text-xl py-1 px-4 rounded-md text-white">
+                  Logout
+                </button>
+              </div>
+            </>
+          )}
+          <hr className="mb-4 border-t-[#d6482b]" />
+          <ul className="flex flex-col gap-3">
+            {isAuthenticated && (
+              <li>
+                <Link
+                  to={"/profile"}
+                  className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
+                >
+                  <FaUserCircle /> Profile
+                </Link>
+              </li>
             )}
             <li>
               <Link
                 to={"/how-it-works-info"}
                 className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
               >
-                <SiGooglesearchconsole /> How It Works
+                <SiGooglesearchconsole /> How it works
               </Link>
             </li>
             <li>
@@ -204,16 +173,10 @@ const SideDrawer = () => {
             >
               <RiInstagramFill />
             </Link>
-            <Link
-              to="/"
-              className="bg-white text-stone-500 p-2 text-xl rounded-sm hover:text-black"
-            >
-              <FaXTwitter />
-            </Link>
           </div>
           <Link
             to={"/contact"}
-            className="text-stone-500 hover:text-[#d6482b] font-semibold hover:transition-all hover:*:duration-150"
+            className="text-stone-500 font-semibold hover:text-[#d6482b] hover:transition-all hover:duration-150"
           >
             Contact Us
           </Link>

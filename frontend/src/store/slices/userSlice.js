@@ -154,7 +154,7 @@ export const fetchUser = () => async (dispatch) => {
   } catch (error) {
     dispatch(userSlice.actions.fetchUserFailed());
     dispatch(userSlice.actions.clearAllErrors());
-    console.error(error);
+    // console.error(error);
   }
 };
 
@@ -172,7 +172,7 @@ export const fetchLeaderboard = () => async (dispatch) => {
   } catch (error) {
     dispatch(userSlice.actions.fetchLeaderboardFailed());
     dispatch(userSlice.actions.clearAllErrors());
-    console.error(error);
+    // console.error(error);
   }
 };
 

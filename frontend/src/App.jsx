@@ -1,37 +1,30 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import SideDrawer from "./layout/SideDrawer";
-// import Home from "./pages/Home";
+import Home from "./pages/Home";
 import { ToastContainer } from "react-toastify";
-import {SignIn, SignUp, useAuth} from "@clerk/clerk-react";
 import { useDispatch } from "react-redux";
-import { userSlice } from "./store/slices/userSlice.js";
 import { useEffect } from "react";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import { fetchLeaderboard, fetchUser } from "./store/slices/userSlice";
 
 const App = () => {
-  const { isSignedIn, user } = useAuth();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (isSignedIn && user) {
-      dispatch(userSlice.actions.loginSuccess({
-        user: {
-          id: user.id,
-          email: user.emailAddresses[0].emailAddress,
-          role: user.publicMetadata.role || 'User'
-        }
-      }));
-    }
-  }, [isSignedIn, user, dispatch]);
+    dispatch(fetchUser());
+    dispatch(fetchLeaderboard());
+  }, []);
 
   return (
     <Router>
       <SideDrawer />
       <Routes>
-        {/* <Route path="/" element={<Home />} /> */}
-        <Route path="login" element={<SignIn />} />
-        <Route path="sign-up" element={<SignUp />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-up" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
-      <ToastContainer position="top-right"/>
+      <ToastContainer position="top-right" />
     </Router>
   );
 };
