@@ -51,7 +51,7 @@ const RoleSelection = () => {
       <div className="mt-6 flex justify-center gap-4">
         {isSignedIn ? (
           <Link
-            to={`/login?role=${selectedRole}`}
+            to={`/logout?role=${selectedRole}`}
             className={`px-6 py-2 rounded-md font-semibold ${
               selectedRole
                 ? "border-2 border-[#D6482B] text-[#D6482B] hover:bg-[#fff5f3]"
