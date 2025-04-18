@@ -5,6 +5,7 @@ import { SiGooglesearchconsole } from "react-icons/si";
 import { BsFillInfoSquareFill } from "react-icons/bs";
 import { FaFacebook } from "react-icons/fa";
 import { RiInstagramFill } from "react-icons/ri";
+import { FaXTwitter } from "react-icons/fa6";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { IoMdCloseCircleOutline, IoIosCreate } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
@@ -109,7 +110,7 @@ const SideDrawer = () => {
                 </Link>
                 <Link
                   to={"/login"}
-                  className="text-[#DECCBE] bg-transparent border-[#DECCBE] border-2 hover:bg-[#fffefd] hover:text-[#fdba88] font-bold text-xl py-1 px-4 rounded-md"
+                  className="text-[#524b46] bg-transparent border-[#DECCBE] border-2 hover:bg-[#fffefd] hover:text-[#fdba88] font-bold text-xl py-1 px-4 rounded-md"
                 >
                   Login
                 </Link>
@@ -138,7 +139,7 @@ const SideDrawer = () => {
             )}
             <li>
               <Link
-                to={"/how-it-works-info"}
+                to={"/how-it-works"}
                 className="flex text-xl font-semibold gap-2 items-center hover:text-[#D6482b] hover:transition-all hover:duration-150"
               >
                 <SiGooglesearchconsole /> How it works
@@ -172,6 +173,12 @@ const SideDrawer = () => {
               className="bg-white text-stone-500 p-2 text-xl rounded-sm hover:text-pink-500"
             >
               <RiInstagramFill />
+            </Link>
+            <Link
+              to="/"
+              className="bg-white text-stone-500 p-2 text-xl rounded-sm hover:text-black"
+            >
+              <FaXTwitter />
             </Link>
           </div>
           <Link

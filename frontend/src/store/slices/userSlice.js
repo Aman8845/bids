@@ -152,9 +152,11 @@ export const fetchUser = () => async (dispatch) => {
     dispatch(userSlice.actions.fetchUserSuccess(response.data.user));
     dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.fetchUserFailed());
-    dispatch(userSlice.actions.clearAllErrors());
-    // console.error(error);
+    dispatch(
+      userSlice.actions.fetchUserFailed(
+        error.response?.data?.message || error.message
+      )
+    );
   }
 };
 
