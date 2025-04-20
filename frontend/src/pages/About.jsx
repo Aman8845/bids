@@ -106,7 +106,7 @@ const About = () => {
           </p>
         </div>
         <div className="pt-4">
-          <p className="text-xl text-stone-600">
+          <p className="text-xl text-slate-600">
             Thank you for choosing BidSphere. We look forward to being a part of
             your auction journey!
           </p>

@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export const userSlice = createSlice({
   name: "user",
   initialState: {
@@ -9,6 +11,7 @@ export const userSlice = createSlice({
     isAuthenticated: false,
     user: {},
     leaderboard: [],
+    error: null,
   },
   reducers: {
     registerRequest(state, action) {
@@ -25,6 +28,7 @@ export const userSlice = createSlice({
       state.loading = false;
       state.isAuthenticated = false;
       state.user = {};
+      state.error = action.payload;
     },
     loginRequest(state, action) {
       state.loading = true;
@@ -40,6 +44,7 @@ export const userSlice = createSlice({
       state.loading = false;
       state.isAuthenticated = false;
       state.user = {};
+      state.error = action.payload;
     },
     fetchUserRequest(state, action) {
       state.loading = true;
@@ -55,8 +60,8 @@ export const userSlice = createSlice({
       state.loading = false;
       state.isAuthenticated = false;
       state.user = {};
+      state.error = action.payload;
     },
-
     logoutSuccess(state, action) {
       state.isAuthenticated = false;
       state.user = {};
@@ -77,11 +82,10 @@ export const userSlice = createSlice({
     fetchLeaderboardFailed(state, action) {
       state.loading = false;
       state.leaderboard = [];
+      state.error = action.payload;
     },
-    clearAllErrors(state, action) {
-      state.user = state.user;
-      state.isAuthenticated = state.isAuthenticated;
-      state.leaderboard = state.leaderboard;
+    clearAllErrors(state) {
+      state.error = null;
       state.loading = false;
     },
   },
@@ -91,7 +95,7 @@ export const register = (data) => async (dispatch) => {
   dispatch(userSlice.actions.registerRequest());
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/v1/user/register",
+      `${API_BASE_URL}/user/register`,
       data,
       {
         withCredentials: true,
@@ -99,12 +103,10 @@ export const register = (data) => async (dispatch) => {
       }
     );
     dispatch(userSlice.actions.registerSuccess(response.data));
-    toast.success(response.data.message);
-    dispatch(userSlice.actions.clearAllErrors());
+    toast.success("Registration successful!");
   } catch (error) {
-    dispatch(userSlice.actions.registerFailed());
-    toast.error(error.response.data.message);
-    dispatch(userSlice.actions.clearAllErrors());
+    dispatch(userSlice.actions.registerFailed(error.response?.data?.message || "Registration failed"));
+    toast.error(error.response?.data?.message || "Registration failed");
   }
 };
 
@@ -112,7 +114,7 @@ export const login = (data) => async (dispatch) => {
   dispatch(userSlice.actions.loginRequest());
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/v1/user/login",
+      `${API_BASE_URL}/user/login`,
       data,
       { withCredentials: true, headers: { "Content-Type": "application/json" } }
     );
@@ -120,8 +122,8 @@ export const login = (data) => async (dispatch) => {
     toast.success(response.data.message);
     dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.loginFailed());
-    toast.error(error.response.data.message);
+    dispatch(userSlice.actions.loginFailed(error.response?.data?.message || "Login failed"));
+    toast.error(error.response?.data?.message || "Login failed");
     dispatch(userSlice.actions.clearAllErrors());
   }
 };
@@ -129,7 +131,7 @@ export const login = (data) => async (dispatch) => {
 export const logout = () => async (dispatch) => {
   try {
     const response = await axios.get(
-      "http://localhost:5000/api/v1/user/logout",
+      `${API_BASE_URL}/user/logout`,
       { withCredentials: true }
     );
     dispatch(userSlice.actions.logoutSuccess());
@@ -146,17 +148,13 @@ export const fetchUser = () => async (dispatch) => {
   dispatch(userSlice.actions.fetchUserRequest());
   try {
     const response = await axios.get(
-      "http://localhost:5000/api/v1/user/profile",
+      `${API_BASE_URL}/user/profile`,
       { withCredentials: true }
     );
     dispatch(userSlice.actions.fetchUserSuccess(response.data.user));
     dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(
-      userSlice.actions.fetchUserFailed(
-        error.response?.data?.message || error.message
-      )
-    );
+    dispatch(userSlice.actions.fetchUserFailed(error.response?.data?.message || error.message));
   }
 };
 
@@ -164,17 +162,14 @@ export const fetchLeaderboard = () => async (dispatch) => {
   dispatch(userSlice.actions.fetchLeaderboardRequest());
   try {
     const response = await axios.get(
-      "http://localhost:5000/api/v1/user/leaderboard",
+      `${API_BASE_URL}/user/leaderboard`,
       { withCredentials: true }
     );
-    dispatch(
-      userSlice.actions.fetchLeaderboardSuccess(response.data.leaderboard)
-    );
+    dispatch(userSlice.actions.fetchLeaderboardSuccess(response.data.leaderboard));
     dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    dispatch(userSlice.actions.fetchLeaderboardFailed());
+    dispatch(userSlice.actions.fetchLeaderboardFailed(error.response?.data?.message || "Failed to fetch leaderboard"));
     dispatch(userSlice.actions.clearAllErrors());
-    // console.error(error);
   }
 };
 

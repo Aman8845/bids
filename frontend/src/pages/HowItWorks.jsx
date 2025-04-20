@@ -61,7 +61,7 @@ const HowItWorks = () => {
             return (
               <div
                 key={index}
-                className="bg-white rounded-md p-2 lg:p-5 flex flex-col gap-2 hover:bg-[#ecb5ab] transition-all duration-300"
+                className="bg-white rounded-md p-2 lg:p-5 flex flex-col gap-2 hover:shadow-md transition-all duration-300"
               >
                 <div className="flex flex-row">
                 <div className="bg-black text-white p-3 text-xl rounded-full w-fit group-hover:bg-[#d6482b] transition-all duration-300">
