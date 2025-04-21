@@ -7,6 +7,7 @@ import { connectDB } from "./database/db.js";
 import { errorMiddleware } from "./middlewares/error.js";
 import userRouter from "./router/userRoutes.js";
 import auctionItemRouter from "./router/auctionItemRouter.js";
+import bidRouter from "./router/bidRouter.js";
  
 const app = express();
 config({
@@ -29,6 +30,7 @@ app.use(fileUpload({ useTempFiles: true, tempFileDir: "/tmp/" }));
 //routes
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/auctionitem", auctionItemRouter);
+app.use("/api/v1/bid", bidRouter)
 
 connectDB();
 app.use(errorMiddleware);
